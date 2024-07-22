@@ -1,6 +1,7 @@
 package com.generation.farmaciaD.controller;
 
 import com.generation.farmaciaD.model.Produtos;
+import com.generation.farmaciaD.repository.CategoriasRepository;
 import com.generation.farmaciaD.repository.ProdutosRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,9 @@ public class ProdutosController {
     @Autowired
     private ProdutosRepository produtosRepository;
 
+    @Autowired
+    private CategoriasRepository categoriasRepository;
+
     @GetMapping
     public ResponseEntity<List<Produtos>> getAll(){
         return ResponseEntity.ok(produtosRepository.findAll());
@@ -38,14 +42,24 @@ public class ProdutosController {
 
     @PostMapping
     public ResponseEntity<Produtos> post(@Valid @RequestBody Produtos produtos) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(produtosRepository.save(produtos));
+        if (categoriasRepository.existsById(produtos.getCategorias().getId()))
+            return ResponseEntity.status(HttpStatus.CREATED)
+            .body(produtosRepository.save(produtos));
+
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Categoria não existe!", null);
+
     }
 
     @PutMapping
     public ResponseEntity<Produtos> put(@Valid @RequestBody Produtos produtos) {
-        return produtosRepository.findById(produtos.getId()).map(resposta -> ResponseEntity.status(HttpStatus.OK)
-                .body(produtosRepository.save(produtos)))
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        if (produtosRepository.existsById(produtos.getId())) {
+
+            if (categoriasRepository.existsById(produtos.getCategorias().getId()))
+                return ResponseEntity.status(HttpStatus.OK).body(produtosRepository.save(produtos));
+
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Categoria não existe!", null);
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)

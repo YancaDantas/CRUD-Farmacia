@@ -1,5 +1,6 @@
 package com.generation.farmaciaD.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
@@ -22,6 +23,10 @@ public class Produtos {
 
     @NotNull(message = "O valor é Obrigatório!")
     private Double valor;
+
+    @ManyToOne
+    @JsonIgnoreProperties("produtos")
+    private Categorias categorias;
 
     public Long getId() {
         return id;
@@ -63,5 +68,11 @@ public class Produtos {
         this.dataValidade = dataValidade;
     }
 
+    public Categorias getCategorias() {
+        return categorias;
+    }
 
+    public void setCategorias(Categorias categorias) {
+        this.categorias = categorias;
+    }
 }
